@@ -15,19 +15,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '=p#rj2ndo!)9shssau6zc$b2ae*v^v$3%px=*#j_rvp-@ep&v#'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -119,3 +106,31 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+
+# デプロイ設定
+DEBUG = False
+
+try:
+    from .local_settings import *
+except ImportError:
+    pass
+
+import os
+
+# ローカル用設定
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+if not DEBUG:
+    import environ
+    env = environ.Env()
+    env.read_env(os.path.join(BASE_DIR,'.env'))
+
+    SECRET_KEY = env('SECRET_KEY')
+    ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
+
+    STATIC_ROOT = '/usr/share/nginx/html/static'
+    MEDIA_ROOT = '/usr/share/nginx/html/media'
